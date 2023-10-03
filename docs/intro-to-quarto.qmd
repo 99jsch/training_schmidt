@@ -1,0 +1,50 @@
+---
+title: "Intro to Quarto"
+format: html
+bibliography: references.bib
+csl: american-chemical-society.csl
+execute: 
+  echo: FALSE
+date: 10/02/2023
+---
+
+# Header 1
+
+I am going to bold **this text**.
+
+And italicize *this*.
+
+## Header 2
+
+CO~2~ and $x=2y$.
+
+------------------------------------------------------------------------
+
+$$ x = 2y $$
+
+### Header 3
+
+-   A
+-   B
+    -   Ba
+    -   Bb
+
+#### Header 4
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| 1    | a    | b    |
+| 2    | c    | d    |
+| 3    | e    | f    |
+
+This is a very important fact [@oke2020]
+
+## Code Chunks
+
+```{r}
+x <- 4*8
+x
+height_vec <- c(5.2, 6.0, 5.7)
+height_vec
+```
+

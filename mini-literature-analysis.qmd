@@ -1,0 +1,61 @@
+---
+title: "Mini Literate Analysis"
+author: "Jacob Schmidt"
+date: 10/02/2023
+format: html
+---
+
+## Introduction
+
+### About this data
+The dataset used for this work includes chemical and physical parameters from sea ice platforms in the Arctic in order to provide context for how high latitude oceans regulate global climate. Data was collected in April or May of 2000-2014 and has been deposited in the [Arctic Data Center](https://arcticdata.io/catalog/view/doi:10.18739/A25T3FZ8X)
+
+### Setup
+
+```{r}
+#| warning: FALSE
+library(readr)
+library(here)
+```
+
+### Read data
+
+```{r}
+#| warning: FALSE
+bg_chem <- read_csv(here("data/BGchem2008data.csv"))
+```
+Exploring our data: 
+```{r}
+colnames(bg_chem)
+str(bg_chem)
+summary(bg_chem)
+unique(bg_chem$Date)
+```
+
+
+## Analysis
+
+### Calculate summary statistics
+
+```{r}
+nitrate <- mean(bg_chem$NO3)
+nitrite <- mean(bg_chem$NO2)
+ammonium <- mean(bg_chem$NH4)
+phosphorous <- mean(bg_chem$P)
+```
+
+### Calculate mean Redfield Ratio
+```{r}
+RR <- (nitrate + nitrite + ammonium) / phosphorous
+RR
+```
+
+### Plot Redfield Ratio
+```{r}
+plot(bg_chem$P, bg_chem$NO2 + bg_chem$NO3 + bg_chem$NH4)
+```
+
+
+## Conclusion
+
+The Redfield Ratio of this data is `r round(RR, digits = 3)`
