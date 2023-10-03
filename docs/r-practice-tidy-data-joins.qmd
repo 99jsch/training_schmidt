@@ -1,0 +1,65 @@
+---
+title: "R Practice: Tidy Data and Joins"
+format: html
+---
+
+## Setup and Loading in Data
+```{r}
+#| warnings: false
+
+library(readr)
+library(dplyr)
+library(lubridate)
+
+bird_observations <- read_csv("https://portal.edirepository.org/nis/dataviewer?packageid=knb-lter-cap.256.10&entityid=53edaa7a0e083013d9bf20322db1780e")
+surveys <- read_csv("https://portal.edirepository.org/nis/dataviewer?packageid=knb-lter-cap.256.10&entityid=b2466fa5cb5ed7ee1ea91398fc291c59")
+sites <- read_csv("https://portal.edirepository.org/nis/dataviewer?packageid=knb-lter-cap.256.10&entityid=81bf72420e69077097fb0790dcdc63a6")
+taxalist <- read_csv("https://portal.edirepository.org/nis/dataviewer?packageid=knb-lter-cap.256.10&entityid=58f863b7e3066e68536a9cacdc7bd58e")
+```
+
+## Questions
+
+### Getting familiar with the data
+
+#### 2a. 
+
+#### 2b. 
+
+### 3. Creating a subset of `bird_observations`
+
+### Use `left_join()` to merge `birds_subset` with the tables `sites` and `taxalist`
+
+#### 4a.
+
+#### 4b. 
+
+### Use `full_join()` to merge `birds~subset` and `sites` tables
+
+#### 5a.
+
+#### 5b. 
+
+### Use `inner_join()` to merge `birds_subset` and `taxalist` data
+
+#### 6a.
+
+#### 6b.
+
+#### 6c.
+
+#### 6d. 
+
+### Wrangle `bird_observations` data and merge the data with all the other tables (`sites`, `surveys`, and `taxalist`)
+
+#### 7a. 
+
+#### 7b. 
+
+### Explore `observer` data and fix the values within this column so that all values are in the same format
+
+#### 8a.
+
+#### 8b. 
+
+### Bonus: Use a new package `lubridate` to wrangle the date data and find the total number of birds by park and month
+
