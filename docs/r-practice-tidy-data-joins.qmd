@@ -4,6 +4,7 @@ format: html
 ---
 
 ## Setup and Loading in Data
+
 ```{r}
 #| warnings: false
 
@@ -21,45 +22,114 @@ taxalist <- read_csv("https://portal.edirepository.org/nis/dataviewer?packageid=
 
 ### Getting familiar with the data
 
-#### 2a. 
+#### 2a.
 
-#### 2b. 
+```{r}
+colnames(bird_observations)
+colnames(surveys)
+colnames(sites)
+colnames(taxalist)
+
+summary(bird_observations)
+summary(surveys)
+summary(sites)
+summary(taxalist)
+
+head(bird_observations)
+head(surveys)
+head(sites)
+head(taxalist)
+
+unique(taxalist$species_id) # etc.
+```
+
+#### 2b.
+
+-   The dataset `bird_observations` has a compound key of `species_id` and `site_id`. A foreign key is `species_id`, `survey_id`, or `site_id`.
+-   The dataset `sites` has a primary key of `site_id`.
+-   The dataset `surveys` has a primary key of `survey_id`.
+-   The dataset `taxalist` has a primary key of `species_id`.
 
 ### 3. Creating a subset of `bird_observations`
+```{r}
+birds_subset <- bird_observations %>%
+  filter(species_id %in% c("BHCO", "RWBL") & site_id %in% c("LI-W", "NU-C"))
+head(birds_subset)
+```
 
 ### Use `left_join()` to merge `birds_subset` with the tables `sites` and `taxalist`
 
 #### 4a.
+The `left_join()` between `birds_subset` and `sites` should contain all the columns of `birds_subset` and `sites`, but will not include any observations in `sites` for a `site_id` not in `birds_subset`.
 
-#### 4b. 
+#### 4b.
+```{r}
+birds_left <- left_join(birds_subset, sites, by = "site_id")
+head(birds_left)
+```
 
-### Use `full_join()` to merge `birds~subset` and `sites` tables
+### Use `full_join()` to merge `birds_subset` and `sites` tables
 
 #### 5a.
+The `full_join()` between `birds_subset` and `sites` should contain all the columns and observations of `birds_subset` and `sites`, including any observations in `sites` for a `site_id` not in `birds_subset`.
 
-#### 5b. 
+#### 5b.
+```{r}
+birds_full <- full_join(birds_subset, sites, by = "site_id")
+head(birds_full)
+```
+The output is what I would expect! 
 
 ### Use `inner_join()` to merge `birds_subset` and `taxalist` data
 
 #### 6a.
+The `inner_join()` between `birds_subset` and `sites` should contain only the columns and observations of `birds_subset` also in `sites`, and vice versa.
 
 #### 6b.
+The two datasets must be combined by `site_id`.
+```{r}
+birds_inner <- inner_join(birds_subset, sites, by = "site_id")
+head(birds_inner)
+```
 
-#### 6c.
-
-#### 6d. 
+#### 6c-d.
+In this case, you would receive the same result using the `left_join()` command. This is because each `site_id` in `birds_subset` is found within the dataset `sites`. The code for this is the same code used in *Question 4b*. This would not be the case if some values in `site_id` are not found within the data set `sites`; in this case, it would combine only the values of `site_id` those two datasets have in common.
 
 ### Wrangle `bird_observations` data and merge the data with all the other tables (`sites`, `surveys`, and `taxalist`)
 
-#### 7a. 
+#### 7a.
+```{r}
+bird_observations <- bird_observations %>%
+  rename(bird_obs_notes = notes)
+```
 
-#### 7b. 
+#### 7b.
+```{r}
+bird_observations_subset <- bird_observations %>%
+  full_join(y = sites, by = "site_id") %>%
+  full_join(y = taxalist, by = "species_id") %>%
+  full_join(y = surveys, by = c("survey_id", "site_id")) %>%
+  select(survey_date, common_name, park_name, bird_count, observer)
+
+head(bird_observations_subset)
+```
 
 ### Explore `observer` data and fix the values within this column so that all values are in the same format
 
 #### 8a.
+```{r}
+unique(bird_observations_subset$observer)
+```
+There is a value with full first and last name! 
 
-#### 8b. 
+#### 8b.
+```{r}
+bird_observations_subset <- bird_observations_subset %>%
+  mutate(observer = if_else(condition = observer == "Josh Burns", 
+                            true = "J. Burns", 
+                            false = observer))
+unique(bird_observations_subset$observer)
+```
+
 
 ### Bonus: Use a new package `lubridate` to wrangle the date data and find the total number of birds by park and month
-
