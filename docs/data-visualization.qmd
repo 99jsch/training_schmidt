@@ -1,0 +1,167 @@
+---
+title: "Data Visualization"
+format: html
+---
+
+## Setup
+```{r}
+#| warning: false
+#| message: false
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(forcats) # makes working with factors easier
+library(ggplot2)
+library(leaflet) # interactive maps
+library(DT) # interactive tables
+library(scales) # scale functions for visualization
+library(janitor) # expedite cleaning and exploring data
+library(viridis) # colorblind friendly color pallet
+```
+
+## Read data
+```{r}
+#| warning: false
+#| message: false
+
+delta_visits_raw <- read_csv("https://portal.edirepository.org/nis/dataviewer?packageid=edi.587.1&entityid=cda8c1384af0089b506d51ad8507641f")
+
+head(delta_visits_raw)
+colnames(delta_visits_raw)
+
+delta_visits <- delta_visits_raw %>%
+  clean_names()
+
+colnames(delta_visits)
+```
+
+Exploring our data
+```{r}
+glimpse(delta_visits)
+range(delta_visits$date)
+```
+
+## Cleaning and organizing data
+```{r}
+visit_long <- delta_visits %>%
+  pivot_longer(cols = c("sm_boat", "med_boat", "lrg_boat", "bank_angler", "scientist", "cars"),
+               names_to = "visitor_type",
+               values_to = "quantity") %>%
+  rename(restore_loc = eco_restore_approximate_location) %>%
+  select(-notes)
+```
+
+## Calculating daily visits by location
+```{r}
+daily_visits_loc <- visit_long %>%
+  group_by(restore_loc, date, visitor_type) %>%
+  summarise(daily_visits = sum(quantity))
+```
+
+## Plotting with `ggplot2`
+```{r}
+ggplot(data = daily_visits_loc,
+       aes(x = restore_loc,
+           y = daily_visits)) +
+  geom_col()
+```
+
+## Choosing a different `geom_*`
+```{r}
+daily_visits_loc %>%
+  separate(date, c("year", "month", "day"), sep = "-") %>%
+  filter(daily_visits < 30,
+         visitor_type %in% c("sm_boat", "med_boat", "lrg_boat")) %>%
+  ggplot(aes(x = visitor_type,
+             y = daily_visits)) +
+  geom_boxplot()
+```
+
+## Customizing our plot
+```{r}
+ggplot(daily_visits_loc,
+       aes(x = restore_loc, 
+           y = daily_visits)) + 
+  geom_col(fill = "blue")
+# everytime you put something in the aesthetic function, it looks within data for variables. This is why putting fill inside the aesthetic doesn't work! 
+```
+
+```{r}
+ggplot(daily_visits_loc,
+       aes(x = restore_loc, 
+           y = daily_visits,
+           fill = visitor_type)) + 
+  geom_col()
+# Note that now the fill function is inside the aesthetic function, and now it fills by that data type. 
+```
+
+```{r}
+ggplot(daily_visits_loc,
+       aes(x = restore_loc, 
+           y = daily_visits,
+           fill = visitor_type)) + 
+  geom_col() +
+  labs(x = "Restoration Locations",
+       y = "Number of Visits",
+       fill = "Visitor Type",
+       title = "Total Visits to Restoration Locations",
+       subtitle = "Sum of Daily Visits During Study Period") + 
+  coord_flip() +
+  theme_bw() +
+  theme(legend.position = "bottom",
+        axis.ticks.y = element_blank()) +
+  scale_y_continuous(breaks = seq(0, 120, 20)) +
+  scale_fill_viridis_d(labels = c("Bank Angler", "Cars", "Large Boat", "Medium Boat", "Scientist", "Small Boat"))
+
+## Saving the plot
+ggsave("../plots/visits_restore_loc_delta.png",
+       width = 12,
+       height = 6,
+       units = "in")
+```
+
+## Interactive visualizations
+
+`DT` Package for interactive tables.
+```{r}
+locations <- visit_long %>%
+  distinct(restore_loc, .keep_all = TRUE) %>%
+  select(restore_loc, latitude, longitude)
+```
+
+Interactive table.
+```{r}
+datatable(locations)
+```
+
+Interactive maps with `leaflet`.
+```{r}
+leaflet(locations) %>%
+  addTiles() %>%
+  addMarkers(lng = ~longitude,
+             lat = ~latitude,
+             popup = ~restore_loc)
+```
+
+```{r}
+leaflet(locations) %>%
+    addWMSTiles(
+        "https://basemap.nationalmap.gov/arcgis/services/USGSImageryTopo/MapServer/WmsServer",
+        layers = "0",
+        options = WMSTileOptions(format = "image/png", transparent = TRUE)) %>%
+    addCircleMarkers(
+        lng = ~ longitude,
+        lat = ~ latitude,
+        popup = ~ restore_loc,
+        radius = 5,
+        # set fill properties
+        fillColor = "salmon",
+        fillOpacity = 1,
+        # set stroke properties
+        stroke = T,
+        weight = 0.5,
+        color = "white",
+        opacity = 1)
+```
+
