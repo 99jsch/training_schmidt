@@ -1,0 +1,130 @@
+---
+title: "Cleaning and Wrangling Data"
+format: html
+---
+
+## Set up
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+
+library(dplyr)
+library(tidyr)
+library(readr)
+```
+
+## Read data
+
+```{r}
+#| warning: FALSE
+#| message: FALSE
+
+catch_original <- read_csv("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1")
+```
+
+```{r}
+#| echo: FALSE
+#| eval: FALSE
+
+colnames(catch_original)
+summary(catch_original)
+head(catch_original)
+unique(catch_original$Region)
+```
+
+## Use `select()` to remove or select columns.
+
+The following code chunks function the same. The (-) removes the subsequent columns.
+
+```{r}
+catch_data <- catch_original %>%
+  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum)
+
+catch_data <- catch_original %>%
+  select(-All, -notesRegCode)
+```
+
+Quality check:
+
+```{r}
+glimpse(catch_data)
+```
+
+## Overwrite Chinook column using `mutate()`.
+
+We want the Chinook values to be <dbl>, not <chr>.
+
+```{r}
+catch_clean <- catch_data %>%
+  mutate(Chinook = as.numeric(Chinook))
+```
+
+```{r}
+
+# Base R was used to identify which column had the problematic character value of the Chinook column.
+i <- which(is.na(catch_clean$Chinook))
+i
+catch_data[i,]
+```
+
+```{r}
+catch_clean <- catch_data %>%
+  mutate(Chinook = if_else(condition = Chinook == "I",
+                           true = "1",
+                           false = Chinook),
+         Chinook = as.numeric(Chinook))
+
+glimpse(catch_clean)
+```
+
+## Reshaping DF with `pivot_longer()` and `pivot_wider()`.
+
+```{r}
+catch_long <- catch_clean %>%
+  pivot_longer(cols = -c(Region, Year), 
+               names_to = "Species", 
+               values_to = "Catch")
+head(catch_long)
+```
+
+## The `rename()` function.
+```{r}
+# catch_long <- catch_long %>%
+#   rename(Catch_Thousands = Catch_Thousand)
+# head(catch_long)
+```
+
+## Adding a column using `mutate()`.
+```{r}
+catch_long <- catch_long %>%
+  mutate(Catch = Catch_Thousands * 1000) %>%
+  select(-Catch_Thousands)
+
+head(catch_long)
+```
+
+## Split, Apply, Combine
+```{r}
+mean_region <- catch_long %>%
+  group_by(Region) %>%
+  summarise(mean_catch = mean(Catch))
+
+head(mean_region)
+
+n_region <- catch_long %>%
+  group_by(Region) %>%
+  summarize(n = n())
+
+head(n_region)
+```
+
+## Filtering using `filter()`.
+```{r}
+sse_catch <- catch_long %>%
+  filter(Region == "SSE")
+
+sse_catch_2 <- catch_long %>%
+  filter(Region %in% c("SSE", "NSE"))
+```
+
