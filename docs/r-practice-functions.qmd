@@ -2,3 +2,74 @@
 title: "R Practice: Functions"
 format: html
 ---
+## Let's create some simple functions. 
+This first function will double values.
+```{r}
+double_it <- function(val){
+  doubled <- val * 2
+  return(doubled)
+}
+
+val <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+double_it(val)
+```
+
+This second function will return the statement "I am x years old!"
+```{r}
+exclaim_age <- function(age){
+  print(paste("I am", age, "years old!"))
+}
+
+exclaim_age(24)
+```
+
+This third function will find the maximum value of a set. 
+```{r}
+find_max <- function(val){
+  if(val[1] > val[2]) {
+    return(val[1])
+  }
+  else if (val[2] > val[1]){
+    return(val[2])
+  }
+}
+
+val <- c(4, 6)
+find_max(val)
+
+30 * find_max(val)
+```
+
+Let's format the code a different way.
+```{r}
+find_max_2 <- function(val_1, val_2){
+  #This code will also work here:
+  # if(is.na(as.numeric(as.character(val_1)))){
+  #   return(warning("First Value is not a Numeric!"))
+  # }
+  if(is.numeric(val_1) != TRUE | is.numeric(val_2) != TRUE){
+    return(warning("A value is not a Numeric!"))
+  }
+  else if(is.na(as.numeric(as.character(val_2)))){
+    return(warning("Second Value is not a Numeric!"))
+  }
+  if(val_1 > val_2){
+    return(val_1)
+  }
+  else if(val_2 > val_1){
+    return(val_2)
+  }
+  else if(val_1 == val_2){
+    return(warning("Values are Equal!"))
+  }
+}
+
+find_max_2(2, 5)
+```
+
+## Let's try setting up error and warning messages in functions.
+```{r}
+find_max_2(4, 2, 5) 
+find_max_2(4, 4)
+find_max_2(4, "cow")
+```
